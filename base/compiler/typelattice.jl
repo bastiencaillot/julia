@@ -284,7 +284,7 @@ widenconst(t::PartialStruct) = t.typ
 widenconst(t::PartialOpaque) = t.typ
 widenconst(t::Type) = t
 widenconst(t::TypeVar) = error("unhandled TypeVar")
-widenconst(t::Core.TypeofVararg) = error("unhandled Vararg")
+widenconst(t::TypeofVararg) = error("unhandled Vararg")
 widenconst(t::LimitedAccuracy) = error("unhandled LimitedAccuracy")
 
 issubstate(a::VarState, b::VarState) = (a.typ ⊑ b.typ && a.undef <= b.undef)

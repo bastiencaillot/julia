@@ -785,7 +785,7 @@ end
 
 function validate_sparams(sparams::SimpleVector)
     for i = 1:length(sparams)
-        (isa(sparams[i], TypeVar) || isa(sparams[i], Core.TypeofVararg)) && return false
+        (isa(sparams[i], TypeVar) || isvarargtype(sparams[i])) && return false
     end
     return true
 end

@@ -46,7 +46,7 @@ function is_derived_type(@nospecialize(t), @nospecialize(c), mindepth::Int)
         # see if it is derived from the body
         # also handle the var here, since this construct bounds the mindepth to the smallest possible value
         return is_derived_type(t, c.var.ub, mindepth) || is_derived_type(t, c.body, mindepth)
-    elseif isa(c, Core.TypeofVararg)
+    elseif isvarargtype(c)
         return is_derived_type(t, unwrapva(c), mindepth)
     elseif isa(c, DataType)
         if mindepth > 0
@@ -175,14 +175,14 @@ function __limit_type_size(@nospecialize(t), @nospecialize(c), sources::SimpleVe
     elseif isa(t, TypeVar)
         # don't have a matching TypeVar in comparison, so we keep just the upper bound
         return __limit_type_size(t.ub, c, sources, depth, allowed_tuplelen)
-    elseif isa(t, Core.TypeofVararg)
-        isa(c, Core.TypeofVararg) || return Vararg
+    elseif isvarargtype(t)
+        isvarargtype(c) || return Vararg
         VaT = __limit_type_size(unwrapva(t), unwrapva(c), sources, depth + 1, 0)
         if isdefined(t, :N) && (isa(t.N, TypeVar) || (isdefined(c, :N) && t.N === c.N))
             return Vararg{VaT, t.N}
         end
         return Vararg{VaT}
-    elseif isa(c, Core.TypeofVararg)
+    elseif isvarargtype(c)
         # Tuple{Vararg{T}} --> Tuple{T} is OK
         return __limit_type_size(t, unwrapva(c), sources, depth, 0)
     else
@@ -233,13 +233,13 @@ function type_more_complex(@nospecialize(t), @nospecialize(c), sources::SimpleVe
         return t !== 1 && !(0 <= t < c) # alternatively, could use !(abs(t) <= abs(c) || abs(t) < n) for some n
     end
     # base case for data types
-    if isa(t, Core.TypeofVararg)
-        if isa(c, Core.TypeofVararg)
+    if isvarargtype(t)
+        if isvarargtype(c)
             return type_more_complex(unwrapva(t), unwrapva(c), sources, depth + 1, tupledepth, 0)
         end
     elseif isa(t, DataType)
         tP = t.parameters
-        if isa(c, Core.TypeofVararg)
+        if isvarargtype(c)
             return type_more_complex(t, unwrapva(c), sources, depth, tupledepth, 0)
         elseif isType(t) # allow taking typeof any source type anywhere as Type{...}, as long as it isn't nesting Type{Type{...}}
             tt = unwrap_unionall(t.parameters[1])
@@ -612,7 +612,7 @@ function tmeet(@nospecialize(v), @nospecialize(t))
         new_fields = Vector{Any}(undef, length(v.fields))
         for i = 1:length(new_fields)
             vfi = v.fields[i]
-            if isa(vfi, Core.TypeofVararg)
+            if isvarargtype(vfi)
                 new_fields[i] = vfi
             else
                 new_fields[i] = tmeet(vfi, widenconst(getfield_tfunc(t, Const(i))))

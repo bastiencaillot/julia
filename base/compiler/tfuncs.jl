@@ -1270,7 +1270,7 @@ function apply_type_tfunc(@nospecialize(headtypetype), @nospecialize args...)
         return Any
     end
     if !isempty(args) && isvarargtype(args[end])
-        return isvarargtype(headtype) ? Core.TypeofVararg : Type
+        return isvarargtype(headtype) ? TypeofVararg : Type
     end
     largs = length(args)
     if headtype === Union
@@ -1331,7 +1331,7 @@ function apply_type_tfunc(@nospecialize(headtypetype), @nospecialize args...)
             canconst &= !has_free_typevars(aip1)
             push!(tparams, aip1)
         elseif isa(ai, Const) && (isa(ai.val, Type) || isa(ai.val, TypeVar) ||
-                                  valid_tparam(ai.val) || (istuple && isa(ai.val, Core.TypeofVararg)))
+                                  valid_tparam(ai.val) || (istuple && isvarargtype(ai.val)))
             push!(tparams, ai.val)
         elseif isa(ai, PartialTypeVar)
             canconst = false
@@ -1397,11 +1397,11 @@ function apply_type_tfunc(@nospecialize(headtypetype), @nospecialize args...)
     catch ex
         # type instantiation might fail if one of the type parameters
         # doesn't match, which could happen if a type estimate is too coarse
-        return isvarargtype(headtype) ? Core.TypeofVararg : Type{<:headtype}
+        return isvarargtype(headtype) ? TypeofVararg : Type{<:headtype}
     end
     !uncertain && canconst && return Const(appl)
     if isvarargtype(appl)
-        return Core.TypeofVararg
+        return TypeofVararg
     end
     if istuple
         return Type{<:appl}
@@ -1640,7 +1640,7 @@ function builtin_tfunction(interp::AbstractInterpreter, @nospecialize(f), argtyp
         if length(argtypes) - 1 == tf[2]
             argtypes = argtypes[1:end-1]
         else
-            vatype = argtypes[end]::Core.TypeofVararg
+            vatype = argtypes[end]::TypeofVararg
             argtypes = argtypes[1:end-1]
             while length(argtypes) < tf[1]
                 push!(argtypes, unwrapva(vatype))

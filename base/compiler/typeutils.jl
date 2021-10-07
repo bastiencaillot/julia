@@ -5,7 +5,7 @@
 #####################
 
 function rewrap(@nospecialize(t), @nospecialize(u))
-    if isa(t, TypeVar) || isa(t, Type) || isa(t, Core.TypeofVararg)
+    if isa(t, TypeVar) || isa(t, Type) || isvarargtype(t)
         return rewrap_unionall(t, u)
     end
     return t
@@ -103,8 +103,8 @@ end
 function compatible_vatuple(a::DataType, b::DataType)
     vaa = a.parameters[end]
     vab = a.parameters[end]
-    if !(isa(vaa, Core.TypeofVararg) && isa(vab, Core.TypeofVararg))
-        return isa(vaa, Core.TypeofVararg) == isa(vab, Core.TypeofVararg)
+    if !(isvarargtype(vaa) && isvarargtype(vab))
+        return isvarargtype(vaa) == isvarargtype(vab)
     end
     (isdefined(vaa, :N) == isdefined(vab, :N)) || return false
     !isdefined(vaa, :N) && return true
@@ -146,7 +146,7 @@ function typesubtract(@nospecialize(a), @nospecialize(b), MAX_UNION_SPLITTING::I
                             ta = collect(a.parameters)
                             ap = a.parameters[i]
                             bp = b.parameters[i]
-                            (isa(ap, Core.TypeofVararg) || isa(bp, Core.TypeofVararg)) && return a
+                            (isvarargtype(ap) || isvarargtype(bp)) && return a
                             ta[i] = typesubtract(ap, bp, min(2, MAX_UNION_SPLITTING))
                             return Tuple{ta...}
                         end
@@ -256,7 +256,7 @@ function unioncomplexity(t::DataType)
     return c
 end
 unioncomplexity(u::UnionAll) = max(unioncomplexity(u.body)::Int, unioncomplexity(u.var.ub)::Int)
-unioncomplexity(t::Core.TypeofVararg) = isdefined(t, :T) ? unioncomplexity(t.T)::Int : 0
+unioncomplexity(t::TypeofVararg) = isdefined(t, :T) ? unioncomplexity(t.T)::Int : 0
 unioncomplexity(@nospecialize(x)) = 0
 
 function improvable_via_constant_propagation(@nospecialize(t))
