@@ -314,6 +314,13 @@ end
 unwrapva(t::Core.TypeofVararg) = isdefined(t, :T) ? t.T : Any
 unwrapva(@nospecialize(t)) = t
 
+function unwraptv(@nospecialize t)
+    while isa(t, TypeVar)
+        t = t.ub
+    end
+    return t
+end
+
 function unconstrain_vararg_length(va::Core.TypeofVararg)
     # construct a new Vararg type where its length is unconstrained,
     # but its element type still captures any dependencies the input
