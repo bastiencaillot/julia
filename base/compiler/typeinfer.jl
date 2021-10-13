@@ -971,7 +971,7 @@ function _return_type(interp::AbstractInterpreter, @nospecialize(f), @nospeciali
     rt = Union{}
     if isa(f, Builtin)
         rt = builtin_tfunction(interp, f, Any[t.parameters...], nothing)
-        rt = widenconst(unwraptv(rt))
+        rt = widenconst(rt)
     else
         for match in _methods(f, t, -1, get_world_counter(interp))::Vector
             match = match::Core.MethodMatch
