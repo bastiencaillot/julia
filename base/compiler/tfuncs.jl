@@ -1441,11 +1441,10 @@ function tuple_tfunc(atypes::Vector{Any})
         if has_struct_const_info(x)
             anyinfo = true
         else
-            if isvarargtype(x)
-                atypes[i] = x
-            else
-                atypes[i] = x = widenconst(x)
+            if !isvarargtype(x)
+                x = widenconst(x)
             end
+            atypes[i] = x
         end
         if isa(x, Const)
             params[i] = typeof(x.val)
