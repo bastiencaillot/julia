@@ -285,3 +285,10 @@ function unswitchtupleunion(u::Union)
     end
     Tuple{Any[ Union{Any[t.parameters[i] for t in ts]...} for i in 1:n ]...}
 end
+
+function unwraptv(@nospecialize t)
+    while isa(t, TypeVar)
+        t = t.ub
+    end
+    return t
+end
